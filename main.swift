@@ -38,7 +38,7 @@ class Instruction {
             self.type == Type.Infect
     }
     
-    func isControlInstruciton () -> Bool {
+    func isControlInstruction () -> Bool {
         return !self.isActionInstruction ()
     }
     
