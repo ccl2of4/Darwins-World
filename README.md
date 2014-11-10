@@ -1,3 +1,3 @@
-Darwins-Game-of-Life
+Darwin's World
 ====================
 Run main.swift as executable.
