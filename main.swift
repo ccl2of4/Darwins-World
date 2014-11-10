@@ -2,6 +2,11 @@
 
 import Foundation
 
+
+
+
+
+
 /**********
 Instruction
 ***********/
@@ -41,6 +46,15 @@ class Instruction {
     private(set) var param : Int
 }
 
+
+
+
+
+
+
+
+
+
 /******
 Species
 *******/
@@ -66,6 +80,17 @@ class Species {
     var identifier : String
     private var program : [Instruction]
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /*******
 Creature
@@ -169,6 +194,17 @@ class Creature {
     private var direction : Direction
     private var programCounter : Int
 }
+
+
+
+
+
+
+
+
+
+
+
 
 /*****
 Darwin
@@ -342,6 +378,18 @@ class Darwin : CreatureDelegate {
     private var indexOfActiveCreature : Int
     private var board : [AnyObject]
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 /***********
     main
