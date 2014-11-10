@@ -2,6 +2,9 @@
 
 import Foundation
 
+/**********
+Instruction
+***********/
 class Instruction {
     enum Type {
         case Hop, Left, Right, Infect, IfEmpty, IfWall, IfRandom, IfEnemy, Go
@@ -38,6 +41,9 @@ class Instruction {
     private(set) var param : Int
 }
 
+/******
+Species
+*******/
 class Species {
 
     init (identifier : String, instructions : [Instruction] = []) {
@@ -59,6 +65,16 @@ class Species {
     
     var identifier : String
     private var program : [Instruction]
+}
+
+/*******
+Creature
+********/
+protocol CreatureDelegate {
+    func creatureHop (creature : Creature)
+    func creatureIsFacingEmpty (creature : Creature) -> Bool
+    func creatureIsFacingWall (creature : Creature) -> Bool
+    func enemyInFrontOfCreature (creature: Creature) -> Creature?
 }
 
 class Creature {
@@ -90,11 +106,11 @@ class Creature {
         }
     }
     
-    init (species : Species, delegate : Darwin, direction : Direction = Creature.Direction.North) {
+    init (species : Species, delegate: CreatureDelegate, direction : Direction = Creature.Direction.North) {
         self.species = species
-        self.delegate = delegate
         self.direction = direction
         self.programCounter = 0
+        self.delegate = delegate
     }
     
     func handleTurn () {
@@ -148,13 +164,20 @@ class Creature {
         otherCreature.programCounter = 0
     }
     
-    var species : Species
-    var delegate : Darwin
-    var direction : Direction
-    var programCounter : Int
+    private (set) var delegate : CreatureDelegate
+    private var species : Species
+    private var direction : Direction
+    private var programCounter : Int
 }
 
-class Darwin {
+/*****
+Darwin
+******/
+protocol DarwinDelegate {
+    func darwinShouldPrintBoard (darwin : Darwin, turnNum : Int) -> Bool
+}
+
+class Darwin : CreatureDelegate {
 
     init (numRows : Int, numCols : Int) {
         self.numRows = numRows
@@ -190,9 +213,11 @@ class Darwin {
     func run (numTurns : Int) {
         var turnNum = 0
         
-        self.printBoard (turnNum)
+        if self.delegate != nil && self.delegate!.darwinShouldPrintBoard (self, turnNum:turnNum) {
+            self.printBoard (turnNum)
+        }
         
-        while (turnNum < numTurns) {
+        while (turnNum++ < numTurns) {
             var queue : [(Creature,Int)] = []
             for i in 0 ..< self.board.count {
                 if let creature = self.board[i] as? Creature {
@@ -205,8 +230,9 @@ class Darwin {
                 data.0.handleTurn ()
                 queue.removeAtIndex (0)
             }
-            self.printBoard (turnNum)
-            ++turnNum
+            if self.delegate != nil && self.delegate!.darwinShouldPrintBoard (self, turnNum:turnNum) {
+                self.printBoard (turnNum)
+            }
         }
     }
     
@@ -277,7 +303,7 @@ class Darwin {
         return (point.0 * self.numCols) + point.1
     }
     
-    /* creature delegate methods */
+    // creatureDelegate methods
     func creatureHop (creature : Creature) {
         assert (self.creatureIsFacingEmpty (creature));
         var occupiedSpace = indexOfCreature (creature);
@@ -309,12 +335,22 @@ class Darwin {
         }
         return nil
     }
-    var numRows : Int
-    var numCols : Int
-    var indexOfActiveCreature : Int
-    var board : [AnyObject]
+
+    var delegate : DarwinDelegate?
+    private var numRows : Int
+    private var numCols : Int
+    private var indexOfActiveCreature : Int
+    private var board : [AnyObject]
 }
 
+/***********
+    main
+************/
+class DarwinDelegatePrintAll : DarwinDelegate {
+    func darwinShouldPrintBoard (darwin : Darwin, turnNum : Int) -> Bool {
+        return true
+    }
+}
 func main () {
     
     let food = Species (identifier:"f", instructions:[
@@ -364,6 +400,7 @@ func main () {
     */
     
     var d1 = Darwin (numRows:8, numCols:8)
+    d1.delegate = DarwinDelegatePrintAll ()
     
     d1.addCreature (
         Creature (species:food, delegate:d1, direction:Creature.Direction.East),
